@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: ffmpeg-backend
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PORT=${PORT}
+    volumes:
+      - ./:/app
+      - ignore:/app/node_modules/
+    expose:
+      - ${PORT}
+    ports:
+      - ${PORT}:${PORT}
+    env_file:
+      - .env
+volumes:
+  ignore:
