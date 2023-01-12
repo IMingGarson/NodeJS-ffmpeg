@@ -13,13 +13,21 @@ app.get('/pingVideoController', async (req, res) => {
 });
 
 app.post('/video', (req, res) => {
-    const num = +req?.body?.num;
-    if (isNaN(num)) {
+    const { num, video } = req?.body;
+
+    if (isNaN(+num)) {
         return res.json(responseHandler({
-            'message': 'Invalid Parameter'
+            'message': 'Invalid Size'
         }));
     }
-    videoController.createVideo(req?.body?.num)
+
+    if (!video.isArray() || video.length != +num) {
+        return res.json(responseHandler({
+            'message': 'Invalid Video'
+        }));
+    }
+
+    videoController.createVideo(num, video)
         .then(data => {
             console.log('data', data);
             return res.json(responseHandler({

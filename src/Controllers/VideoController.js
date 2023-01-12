@@ -1,53 +1,74 @@
-const { rejects } = require('assert');
-const { resolve } = require('path');
-
 const spawn = require('child_process').spawn;
 
 class VideoController {
 
     constructor() {
         this.FFMPEG_COMMAND = 'ffmpeg';
-        this.ONE_VID_ARGS = [
-            '-i',
-            './assets/videos/1.mp4',
-            '-c:v',
-            'copy',
-            './assets/videos/' + new Date().toISOString() + '.mp4'
-        ];
-        this.TWO_VID_ARGS = [
-            '-vsync',
-            'vfr',
-            '-i',
-            './assets/videos/1.mp4',
-            '-i',
-            './assets/videos/2.mp4',
-            '-filter_complex',
-            'hstack=inputs=2',
-            './assets/videos/' + new Date().toISOString() + '.mp4'
-        ];
-        this.THREE_VID_ARGS = [
-            '-vsync',
-            'vfr',
-            '-i',
-            './assets/videos/1.mp4',
-            '-i',
-            './assets/videos/2.mp4',
-            '-i',
-            './assets/videos/1280x1440.mp4',
-            '-filter_complex',
-            '[0:v][1:v]vstack=inputs=2[v01];[2:v][v01]hstack=inputs=2',
-            './assets/videos/' + new Date().toISOString() + '.mp4'
-        ];
     }
 
     async ping() {
         return 'pong';
     }
 
-    createVideo(num) {
-        // TODO: modify args
+    createVideo(num, videos) {
+        const fileName = new Date().toISOString();
+        let args = [];
+        if (num == 1) {
+            args = [
+                '-i',
+                `./assets/videos/${videos[0]}`,
+                '-c:v',
+                'copy',
+                `./assets/videos/${fileName}.mp4`
+            ]
+        } else if (num == 2) {
+            args = [
+                [
+                    '-vsync',
+                    'vfr',
+                    '-i',
+                    `./assets/videos/${videos[0]}`,
+                    '-i',
+                    `./assets/videos/${videos[1]}`,
+                    '-filter_complex',
+                    'hstack=inputs=2',
+                    `./assets/videos/${fileName}.mp4`
+                ],
+            ]
+        } else if (num == 3) {
+            args = [
+                '-vsync',
+                'vfr',
+                '-i',
+                `./assets/videos/${videos[0]}`,
+                '-i',
+                `./assets/videos/${videos[1]}`,
+                '-i',
+                `./assets/videos/${videos[2]}`,
+                '-filter_complex',
+                '[0:v][1:v]vstack=inputs=2[v01];[2:v][v01]hstack=inputs=2',
+                `./assets/videos/${fileName}.mp4`
+            ];
+        } else if (num == 4) {
+            args = [
+                '-vsync',
+                'vfr',
+                '-i',
+                `./assets/videos/${videos[0]}`,
+                '-i',
+                `./assets/videos/${videos[1]}`,
+                '-i',
+                `./assets/videos/${videos[2]}`,
+                '-i',
+                `./assets/videos/${videos[3]}`,
+                '-filter_complex',
+                '[0:v][1:v]vstack=inputs=2[v01];[2:v][3:v]vstack=inputs=2[v23];[v01][v23]hstack=inputs=2',
+                `./assets/videos/${fileName}.mp4`
+            ];
+        }
+
         return new Promise((resolve, rejects) => {
-            const proc = spawn(this.FFMPEG_COMMAND, this.ONE_VID_ARGS);
+            const proc = spawn(this.FFMPEG_COMMAND, args);
         
             proc.stdout.on('data', function(data) {
                 console.log('[STDOUT ON DATA]', data);

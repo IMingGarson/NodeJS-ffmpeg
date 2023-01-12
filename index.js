@@ -20,7 +20,7 @@ app.use(express.static("public"));
 app.use(api);
 
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.send('Hello world');
 })
 
 app.listen(port, () => {
