@@ -12,34 +12,40 @@ app.get('/pingVideoController', async (req, res) => {
     }));
 });
 
-app.post('/video', (req, res) => {
-    const { num, video } = req?.body;
+app.post('/video', async (req, res) => {
 
-    if (isNaN(+num)) {
+    const { sequence, timeline } = req?.body;
+
+    if (!sequence) {
         return res.json(responseHandler({
-            'message': 'Invalid Size'
+            'message': 'Invalid Parameter'
         }));
     }
 
-    if (!video.isArray() || video.length != +num) {
+    if (!timeline) {
         return res.json(responseHandler({
-            'message': 'Invalid Video'
+            'message': 'Invalid Parameter'
         }));
     }
 
-    videoController.createVideo(num, video)
-        .then(data => {
-            console.log('data', data);
-            return res.json(responseHandler({
-                'data': data
-            }));
-        })
-        .catch(error => {
-            console.log('error', error);
-            return res.json(responseHandler({
-                'message': 'System Error.'
-            }));
-        })
+    // create each frame data for the whole video
+    const clipTxt = await videoController.createFrame(sequence, timeline);
+    if (!clipTxt) {
+        return res.json(responseHandler({
+            'message': 'Fail to generate frame data'
+        }));
+    }
+
+    const finalOutputVideo = await videoController.createVideo(clipTxt);
+    if (!finalOutputVideo) {
+        return res.json(responseHandler({
+            'message': 'Fail to generate video data'
+        }));
+    }
+
+    return res.json(responseHandler({
+        'data': finalOutputVideo
+    }));
 });
 
 const responseHandler = (message) => {

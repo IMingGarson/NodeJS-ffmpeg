@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const api = require('./src/Routes/api.js');
-const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -14,6 +14,7 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json({ type: 'application/json' }));
 app.use(cors(corsOptions));
 app.use(express.static("public"));
