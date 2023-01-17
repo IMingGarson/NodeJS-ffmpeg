@@ -11,7 +11,6 @@ services:
         - PORT=${PORT}
     volumes:
       - ./:/app
-      - ignore:/app/node_modules/
     expose:
       - ${PORT}
     ports:

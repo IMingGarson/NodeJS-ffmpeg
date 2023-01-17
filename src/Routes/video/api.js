@@ -1,26 +1,72 @@
 const { Router } = require('express');
-const auth = require('../Middleware/auth.js');
-const { VideoController } = require('../Controllers/VideoController');
+const auth = require('../../Middleware/auth.js');
+const { VideoController } = require('../../Controllers/VideoController');
 const videoController = new VideoController();
 const app = Router();
-
 app.use(auth);
 
-app.get('/pingVideoController', async (req, res) => {
+/**
+ * @swagger
+ * "/video/ping": {
+ *  "get": {
+ *   "description": "Test VideoController",
+ *   "responses": {
+ *     "200": {
+ *       "description": "Success"
+ *     },
+ *     "404": {
+ *       "description": "Not Found"
+ *     },
+ *     "502": {
+ *       "description": "Server Error"
+ *     }
+ *   }
+ *  }
+ * }
+ */
+app.get('/video/ping', async (req, res) => {
     return res.json(responseHandler({
         'data': await videoController.ping()
     }));
 });
 
 /**
- * 接收製作影片的參數，回傳至做完的影片路徑
- * 
- * @param 
- * @array sequence 影片人物順序，使用 a b c d 分別代表 康康 心心 樂樂 奇奇
- * @array timeline 定義每個人物在每一格的動作
- * 
- * @return
- * @string finalOutputVideo 輸出的影片路徑
+ * @swagger
+ * "/video": {
+ *  "post": {
+ *   "description": "Create Video with assigned sequence and timelines",
+ *   "consumes": [ "application/json" ],
+ *   "produces": ["application/json"],
+ *   "requestBody": {
+ *     "required": true,
+ *     "content": {
+ *       "application/json": {
+ *         "schema": {
+ *           "properities": {
+ *             "sequence": {
+ *               "type": "array"
+ *             },
+ *             "timeline": {
+ *               "type": "array"
+ *             }
+ *           }
+ *         }
+ *       }
+ *     },
+ *   },
+ *   "responses": {
+ *     "200": {
+ *       "description": "Success"
+ *     },
+ *     "404": {
+ *       "description": "Not Found"
+ *     },
+ *     "502": {
+ *       "description": "Server Error"
+ *     }
+ *   }
+ *  }
+ * }
  */
 app.post('/video', async (req, res) => {
     const { sequence, timeline } = req?.body;
