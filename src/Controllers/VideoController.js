@@ -1,5 +1,6 @@
 const spawn = require('child_process').spawn;
 const fs = require('fs');
+const path = require('path');
 const crypto = require('crypto');
 class VideoController {
 
@@ -15,12 +16,18 @@ class VideoController {
         const clipsComposition = [];
         const transposed = this.transpose(timeline);
         const num = sequence.length;
-        let args = [];
+        const materialPath = `./assets/videos/materials/${crypto.randomUUID()}`;
+        if (!fs.existsSync(materialPath)){
+            fs.mkdirSync(materialPath);
+        }
 
+        let args = [];
         for (let i = 0; i < transposed.length; i++) {
             if (num == 1) {
                 args = [
                     '-y',
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[0]}/${transposed[i][0]}_700x700.mp4`,
                     '-c:v',
@@ -31,8 +38,12 @@ class VideoController {
                     '-y',
                     '-vsync',
                     'vfr',
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[0]}/${transposed[i][0]}_350x700.mp4`,
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[1]}/${transposed[i][1]}_350x700.mp4`,
                     '-filter_complex',
@@ -43,10 +54,16 @@ class VideoController {
                     '-y',
                     '-vsync',
                     'vfr',
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[1]}/${transposed[i][1]}_350x350.mp4`,
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[2]}/${transposed[i][2]}_350x350.mp4`,
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[0]}/${transposed[i][0]}_350x700.mp4`,
                     '-filter_complex',
@@ -57,12 +74,20 @@ class VideoController {
                     '-y',
                     '-vsync',
                     'vfr',
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[0]}/${transposed[i][0]}_350x350.mp4`,
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[1]}/${transposed[i][1]}_350x350.mp4`,
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[2]}/${transposed[i][2]}_350x350.mp4`,
+                    '-stream_loop',
+                    '2',
                     '-i',
                     `./assets/videos/${sequence[3]}/${transposed[i][3]}_350x350.mp4`,
                     '-filter_complex',
@@ -72,7 +97,7 @@ class VideoController {
 
             let clipName = await new Promise((resolve, rejects) => {
                 const fileName = `output_${i}.mp4`;
-                args.push(`./assets/videos/${fileName}`);
+                args.push(`${materialPath}/${fileName}`);
 
                 const proc = spawn(this.FFMPEG_COMMAND, args);
 
@@ -98,19 +123,19 @@ class VideoController {
                 return false;
             }
             clipsComposition.push(clipName);
-
         }
 
-        const clipTxt = `./assets/videos/${crypto.randomUUID()}.txt`;
+        const clipTxt = `${materialPath}/clip.txt`;        
         for (let i = 0; i < clipsComposition.length; i++) {
             fs.appendFileSync(clipTxt, 'file' + " \'" + clipsComposition[i] + "\'" + "\n");
         }
 
-        return clipTxt;
+        return materialPath;
     }
 
-    async createVideo(clipTxt) {
-        const filename = `./assets/output/` + crypto.randomUUID() + '.mp4';
+    async createVideo(materialPath) {
+        const filename = `./assets/output/${crypto.randomUUID()}.mp4`;
+        const clipTxt = `${materialPath}/clip.txt`;
         const args = [
             '-y',
             '-f',
@@ -119,12 +144,19 @@ class VideoController {
             '0',
             '-i',
             clipTxt,
+            '-i',
+            './assets/audio/bgm.mp3',
             '-c',
             'copy',
+            '-map',
+            '0:v:0',
+            '-map',
+            '1:a:0',
+            '-shortest',
             filename
         ];
 
-        return await new Promise((resolve, rejects) => {
+        const result = await new Promise((resolve, rejects) => {
             const proc = spawn(this.FFMPEG_COMMAND, args);
         
             proc.stderr.setEncoding("utf8")
@@ -134,11 +166,6 @@ class VideoController {
             });
             
             proc.on('close', function() {
-                fs.unlink(clipTxt, (error) => {
-                    if (error) {
-                        console.error('[CreateVideo] Unlink error', error);
-                    }
-                });
                 resolve(filename);
             });
 
@@ -147,6 +174,9 @@ class VideoController {
                 rejects(false);
             });
         });
+
+        this.cleanData(materialPath);
+        return result;
     }
 
     getVideoByFileName(filename) {
@@ -155,6 +185,16 @@ class VideoController {
 
     transpose(matrix) {
         return matrix[0].map((_, i) => matrix.map(row => row[i]));
+    }
+
+    // Remove unused static files
+    cleanData(directory) {
+        try {
+            fs.rmSync(directory, { recursive: true, force: true });
+        } catch (e) {
+            console.error('[CleanData] Unlink error', e);
+        }
+        return true;
     }
 }
 

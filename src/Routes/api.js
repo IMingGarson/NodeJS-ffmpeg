@@ -38,14 +38,14 @@ app.post('/video', async (req, res) => {
     }
 
     // create each frame data for the whole video
-    const clipTxt = await videoController.createFrame(sequence, timeline);
-    if (!clipTxt) {
+    const materialPath = await videoController.createFrame(sequence, timeline);
+    if (!materialPath) {
         return res.json(responseHandler({
             'message': 'Fail to generate frame data'
         }));
     }
 
-    const finalOutputVideo = await videoController.createVideo(clipTxt);
+    const finalOutputVideo = await videoController.createVideo(materialPath);
     if (!finalOutputVideo) {
         return res.json(responseHandler({
             'message': 'Fail to generate video data'
@@ -66,14 +66,14 @@ app.get('/video/download', function(req, res){
         }));
     }
 
-    const file = videoController.getVideoByFileName(filename);
-    if (!file) {
-        return res.json(responseHandler({
-            'message': 'Cannot Find Such File'
-        }));
-    }
-
-    res.download(file, 'dance.mp4');
+    res.download(videoController.getVideoByFileName(filename), 'dance.mp4', function (error) {
+        if (error) {
+            console.error('Download Error', error);
+            return res.json(responseHandler({
+                'message': 'Cannot Find File'
+            }));
+        }
+    });
 });
 
 const responseHandler = (message) => {
