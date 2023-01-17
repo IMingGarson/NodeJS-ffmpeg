@@ -134,7 +134,8 @@ class VideoController {
     }
 
     async createVideo(materialPath) {
-        const filename = `./assets/output/${crypto.randomUUID()}.mp4`;
+        const fileUUID = crypto.randomUUID()
+        const fullPath = `./assets/output/${fileUUID}.mp4`;
         const clipTxt = `${materialPath}/clip.txt`;
         const args = [
             '-y',
@@ -153,7 +154,7 @@ class VideoController {
             '-map',
             '1:a:0',
             '-shortest',
-            filename
+            fullPath
         ];
 
         const result = await new Promise((resolve, rejects) => {
@@ -166,7 +167,7 @@ class VideoController {
             });
             
             proc.on('close', function() {
-                resolve(filename);
+                resolve(fileUUID);
             });
 
             proc.on('error', function(error) {
@@ -176,6 +177,7 @@ class VideoController {
         });
 
         this.cleanData(materialPath);
+        
         return result;
     }
 

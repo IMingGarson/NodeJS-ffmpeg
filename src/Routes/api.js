@@ -45,15 +45,15 @@ app.post('/video', async (req, res) => {
         }));
     }
 
-    const finalOutputVideo = await videoController.createVideo(materialPath);
-    if (!finalOutputVideo) {
+    const fileUUID = await videoController.createVideo(materialPath);
+    if (!fileUUID) {
         return res.json(responseHandler({
             'message': 'Fail to generate video data'
         }));
     }
 
     return res.json(responseHandler({
-        'data': finalOutputVideo
+        'data': fileUUID
     }));
 });
 
