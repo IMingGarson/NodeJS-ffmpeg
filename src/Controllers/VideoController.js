@@ -1,7 +1,6 @@
 const spawn = require('child_process').spawn;
 const fs = require('fs');
 const crypto = require('crypto');
-const { rejects } = require('assert');
 class VideoController {
 
     constructor() {
@@ -76,11 +75,8 @@ class VideoController {
                 args.push(`./assets/videos/${fileName}`);
 
                 const proc = spawn(this.FFMPEG_COMMAND, args);
-                args.pop();
 
-                proc.stdout.on('data', function(data) {
-                    console.log('[CreateFrame] STDOUT ON DATA', data);
-                });
+                args.pop();
         
                 proc.stderr.setEncoding("utf8")
         
@@ -89,7 +85,6 @@ class VideoController {
                 });
                 
                 proc.on('close', function() {
-                    console.log('[CreateFrame] ON CLOSE');
                     resolve(fileName);
                 });
     
@@ -106,7 +101,7 @@ class VideoController {
 
         }
 
-        const clipTxt = './assets/videos/clips.txt';
+        const clipTxt = `./assets/videos/${crypto.randomUUID()}.txt`;
         for (let i = 0; i < clipsComposition.length; i++) {
             fs.appendFileSync(clipTxt, 'file' + " \'" + clipsComposition[i] + "\'" + "\n");
         }
@@ -132,10 +127,6 @@ class VideoController {
         return await new Promise((resolve, rejects) => {
             const proc = spawn(this.FFMPEG_COMMAND, args);
         
-            proc.stdout.on('data', function(data) {
-                console.log('[CreateVideo] STDOUT ON DATA', data);
-            });
-    
             proc.stderr.setEncoding("utf8")
     
             proc.stderr.on('data', function(data) {
@@ -143,7 +134,11 @@ class VideoController {
             });
             
             proc.on('close', function() {
-                console.log('[CreateVideo] ON CLOSE');
+                fs.unlink(clipTxt, (error) => {
+                    if (error) {
+                        console.error('[CreateVideo] Unlink error', error);
+                    }
+                });
                 resolve(filename);
             });
 
@@ -152,6 +147,10 @@ class VideoController {
                 rejects(false);
             });
         });
+    }
+
+    getVideoByFileName(filename) {
+        return `./assets/output/${filename}.mp4`;
     }
 
     transpose(matrix) {
