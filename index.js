@@ -10,6 +10,7 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const corsOptions = {
     origin: [
         'http://localhost:3000',
+        'http://192.168.50.27:3001',
     ],
     methods: 'GET,POST,OPTIONS',
     allowedHeaders: ['Content-Type', 'Authorization'],

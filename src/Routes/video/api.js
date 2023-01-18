@@ -117,7 +117,7 @@ app.get('/video/download', function(req, res){
         }));
     }
 
-    res.download(videoController.getVideoByFileName(filename), 'dance.mp4', function (error) {
+    res.download(videoController.getVideoByFileName(filename), '一起跳舞吧.mp4', function (error) {
         if (error) {
             console.error('Download Error', error);
             return res.json(responseHandler({
