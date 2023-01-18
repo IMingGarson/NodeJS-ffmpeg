@@ -98,9 +98,14 @@ app.post('/video', async (req, res) => {
         }));
     }
 
-    return res.json(responseHandler({
-        'data': fileUUID
-    }));
+    res.download(videoController.getVideoByFileName(fileUUID), '小行星_一起去飛翔.mp4', function (error) {
+        if (error) {
+            console.error('Download Error', error);
+            return res.json(responseHandler({
+                'message': 'Cannot Find File'
+            }));
+        }
+    });
 });
 
 app.get('/video/download', function(req, res){
